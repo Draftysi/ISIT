@@ -1,0 +1,82 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Страница-1" id="eR7_41PrNyAZauDzrCZl">
+    <mxGraphModel dx="858" dy="473" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="8wpnt7bn-wb2end8DnBi-44" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;" value="Пользователь" vertex="1">
+          <mxGeometry height="50" width="180" x="560" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-45" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="110" width="230" x="535" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-46" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Веб-интерфейс" vertex="1">
+          <mxGeometry height="40" width="140" x="580" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-47" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Клиентская часть" vertex="1">
+          <mxGeometry height="30" width="140" x="540" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-48" edge="1" parent="1" source="8wpnt7bn-wb2end8DnBi-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="8wpnt7bn-wb2end8DnBi-45">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-57" connectable="0" parent="8wpnt7bn-wb2end8DnBi-48" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Работа с системой через браузер" vertex="1">
+          <mxGeometry relative="1" x="-0.2248" y="3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-49" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="170" width="465" x="420" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-50" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Серверная часть" vertex="1">
+          <mxGeometry height="30" width="140" x="440" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-58" edge="1" parent="1" source="8wpnt7bn-wb2end8DnBi-51" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="8wpnt7bn-wb2end8DnBi-53">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-59" edge="1" parent="1" source="8wpnt7bn-wb2end8DnBi-51" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;" target="8wpnt7bn-wb2end8DnBi-52">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-61" edge="1" parent="1" source="8wpnt7bn-wb2end8DnBi-51" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="8wpnt7bn-wb2end8DnBi-54">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-62" edge="1" parent="1" source="8wpnt7bn-wb2end8DnBi-51" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;" target="8wpnt7bn-wb2end8DnBi-55">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-51" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Серверное приложение" vertex="1">
+          <mxGeometry height="40" width="140" x="580" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-52" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Аутентификация" vertex="1">
+          <mxGeometry height="40" width="105" x="440" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-53" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Бронирование" vertex="1">
+          <mxGeometry height="40" width="92.5" x="552.5" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-54" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Управление комнатами" vertex="1">
+          <mxGeometry height="40" width="105" x="653" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-55" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Управление пользователями" vertex="1">
+          <mxGeometry height="40" width="105" x="766" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-63" edge="1" parent="1" source="8wpnt7bn-wb2end8DnBi-46" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="8wpnt7bn-wb2end8DnBi-51">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-65" connectable="0" parent="8wpnt7bn-wb2end8DnBi-63" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP" vertex="1">
+          <mxGeometry relative="1" x="-0.1616" y="-3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-67" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" value="База данных" vertex="1">
+          <mxGeometry height="80" width="198.5" x="553.25" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-68" edge="1" parent="1" source="8wpnt7bn-wb2end8DnBi-49" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="8wpnt7bn-wb2end8DnBi-67">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8wpnt7bn-wb2end8DnBi-69" connectable="0" parent="8wpnt7bn-wb2end8DnBi-68" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Получение и сохранение данных" vertex="1">
+          <mxGeometry relative="1" x="-0.2935" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
