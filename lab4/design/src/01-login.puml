@@ -1,0 +1,26 @@
+@startsalt
+!define PRIMARY_COLOR #2563EB
+!define TEXT_COLOR #1F2937
+
+skinparam backgroundColor #F3F4F6
+skinparam fontColor TEXT_COLOR
+skinparam fontSize 13
+skinparam defaultFontName Arial
+
+{
+  {
+    {^"<color PRIMARY_COLOR><b>Вход в систему</b></color>
+    <color #6B7280>Система бронирования переговорных комнат</color>"
+    ..
+    <b>Логин</b> | "👤 user@company.ru"
+    <b>Пароль</b> | "🔒 ********"
+    ..
+    [ ] Запомнить меня
+    ..
+    [<color PRIMARY_COLOR><b>  ➜ Войти  </b></color>]
+    ..
+    <u><color #2563EB>Забыли пароль?</color></u>
+    }
+  }
+}
+@endsalt
