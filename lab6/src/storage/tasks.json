@@ -2,73 +2,100 @@
     {
         "id": 1,
         "project_id": 1,
-        "title": "Сверстать главную страницу",
-        "status": "done",
-        "priority": "high",
-        "due_date": "2026-10-01"
+        "title": "Еженедельное совещание отдела",
+        "status": "active",
+        "priority": "medium",
+        "due_date": "2026-11-05",
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "participants": 5
     },
     {
         "id": 2,
         "project_id": 1,
-        "title": "Подключить форму обратной связи",
-        "status": "in_progress",
+        "title": "Обсуждение результатов проекта",
+        "status": "active",
         "priority": "medium",
-        "due_date": "2026-10-10"
+        "due_date": "2026-11-06",
+        "start_time": "11:00",
+        "end_time": "12:00",
+        "participants": 4
     },
     {
         "id": 3,
-        "project_id": 1,
-        "title": "Написать тексты для раздела «О нас»",
-        "status": "new",
-        "priority": "low",
-        "due_date": "2026-10-15"
+        "project_id": 2,
+        "title": "Презентация для клиентов",
+        "status": "active",
+        "priority": "high",
+        "due_date": "2026-11-09",
+        "start_time": "14:00",
+        "end_time": "15:30",
+        "participants": 8
     },
     {
         "id": 4,
         "project_id": 2,
-        "title": "Спроектировать экран авторизации",
+        "title": "Встреча проектной команды",
         "status": "done",
-        "priority": "high",
-        "due_date": "2026-09-28"
+        "priority": "medium",
+        "due_date": "2026-11-02",
+        "start_time": "10:00",
+        "end_time": "11:00",
+        "participants": 6
     },
     {
         "id": 5,
-        "project_id": 2,
-        "title": "Реализовать список заказов",
-        "status": "in_progress",
-        "priority": "high",
-        "due_date": "2026-10-12"
+        "project_id": 3,
+        "title": "Собеседование с кандидатом",
+        "status": "active",
+        "priority": "low",
+        "due_date": "2026-11-10",
+        "start_time": "13:00",
+        "end_time": "14:00",
+        "participants": 3
     },
     {
         "id": 6,
-        "project_id": 2,
-        "title": "Настроить уведомления",
-        "status": "new",
+        "project_id": 3,
+        "title": "Планирование задач на неделю",
+        "status": "active",
         "priority": "medium",
-        "due_date": "2026-10-25"
+        "due_date": "2026-11-11",
+        "start_time": "09:30",
+        "end_time": "10:30",
+        "participants": 4
     },
     {
         "id": 7,
-        "project_id": 3,
-        "title": "Собрать требования у отдела кадров",
-        "status": "new",
+        "project_id": 1,
+        "title": "Обсуждение учебного проекта",
+        "status": "active",
         "priority": "medium",
-        "due_date": "2026-10-08"
+        "due_date": "2026-11-05",
+        "start_time": "12:00",
+        "end_time": "13:00",
+        "participants": 4
     },
     {
         "id": 8,
-        "project_id": 3,
-        "title": "Проверить работу бронирования переговорных комнат",
-        "status": "new",
+        "project_id": 1,
+        "title": "Проверка пересечения времени",
+        "status": "active",
         "priority": "medium",
-        "due_date": "2026-11-10"
+        "due_date": "2026-11-05",
+        "start_time": "10:00",
+        "end_time": "11:00",
+        "participants": 3
     },
     {
         "id": 9,
-        "project_id": 3,
-        "title": "Проверка",
-        "status": "new",
+        "project_id": 1,
+        "title": "Тестовое бронирование",
+        "status": "active",
         "priority": "medium",
-        "due_date": "2026-11-06"
+        "due_date": "2026-11-12",
+        "start_time": "14:00",
+        "end_time": "15:00",
+        "participants": 3
     }
 ]

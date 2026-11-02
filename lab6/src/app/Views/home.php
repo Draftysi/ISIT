@@ -1,26 +1,39 @@
 <?php
-// Шаблон главной страницы. Переменные приходят из HomeController::index():
-//   $total (всего задач), $byStatus (массив «статус => количество»), $projectsCount
+// Главная страница системы бронирования переговорных комнат.
 ?>
+
 <h1>Главная</h1>
 
 <div class="stats">
   <div class="card">
     <div class="stat-value"><?= e($total) ?></div>
-    <div class="stat-label">всего задач</div>
+    <div class="stat-label">Всего бронирований</div>
   </div>
+
   <div class="card">
-    <div class="stat-value"><?= e($byStatus['new']) ?></div>
-    <div class="stat-label">новых</div>
+    <div class="stat-value"><?= e($byStatus['active']) ?></div>
+    <div class="stat-label">Активных</div>
   </div>
-  <div class="card">
-    <div class="stat-value"><?= e($byStatus['in_progress']) ?></div>
-    <div class="stat-label">в работе</div>
-  </div>
+
   <div class="card">
     <div class="stat-value"><?= e($byStatus['done']) ?></div>
-    <div class="stat-label">выполнено</div>
+    <div class="stat-label">Завершённых</div>
+  </div>
+
+  <div class="card">
+    <div class="stat-value"><?= e($byStatus['cancelled']) ?></div>
+    <div class="stat-label">Отменённых</div>
   </div>
 </div>
 
-<p>В системе <strong><?= e($projectsCount) ?></strong> проекта. Перейдите к <a href="/tasks">списку задач</a> или <a href="/projects">проектам</a>.</p>
+<p>
+  В системе доступно переговорных комнат:
+  <strong><?= e($projectsCount) ?></strong>.
+</p>
+
+<p>
+  Перейти к
+  <a href="/tasks">списку бронирований</a>
+  или
+  <a href="/projects">переговорным комнатам</a>.
+</p>

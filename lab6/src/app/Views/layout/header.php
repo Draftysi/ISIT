@@ -11,9 +11,9 @@
     <a class="brand" href="/"><?= e(config('name')) ?></a>
     <nav>
       <a href="/">Главная</a>
-      <a href="/tasks">Задачи</a>
-      <a href="/projects">Проекты</a>
-      <a href="/tasks/create" class="btn-small">+ Новая задача</a>
+      <a href="/tasks">Бронирования</a>
+      <a href="/projects">Переговорные</a>
+      <a href="/tasks/create" class="btn-small">+ Новое бронирование</a>
     </nav>
   </header>
   <main class="container">

@@ -1,37 +1,107 @@
 <?php
-// Шаблон формы создания задачи.
-// Переменные: $projects (список проектов для выбора), $errors (ошибки проверки), $old (прежние значения полей)
-?>
-<h1>Новая задача</h1>
+// Форма создания бронирования переговорной комнаты.
+// $projects - список переговорных комнат.
+// $errors - ошибки проверки.
+// $old - ранее введённые значения.
 
-<!-- action — адрес, на который браузер отправит данные; method="post" — способом POST -->
+$errors = $errors ?? [];
+$old = $old ?? [];
+$projects = $projects ?? [];
+?>
+
+<h1>Новое бронирование</h1>
+
 <form action="/tasks" method="post" class="card form">
 
-  <label for="title">Название</label>
-  <input id="title" type="text" name="title" value="<?= e($old['title'] ?? '') ?>">
-  <?php if (isset($errors['title'])): ?><div class="error"><?= e($errors['title']) ?></div><?php endif; ?>
+  <label for="title">Тема встречи</label>
+  <input
+    id="title"
+    type="text"
+    name="title"
+    value="<?= e($old['title'] ?? '') ?>"
+    required
+  >
+  <?php if (isset($errors['title'])): ?>
+    <div class="error"><?= e($errors['title']) ?></div>
+  <?php endif; ?>
 
-  <label for="project_id">Проект</label>
-  <select id="project_id" name="project_id">
-    <option value="">Выберите проект…</option>
+  <label for="project_id">Переговорная комната</label>
+  <select id="project_id" name="project_id" required>
+    <option value="">Выберите переговорную…</option>
+
     <?php foreach ($projects as $project): ?>
-      <option value="<?= e($project['id']) ?>" <?= ((int) ($old['project_id'] ?? 0)) === $project['id'] ? 'selected' : '' ?>>
+      <option
+        value="<?= e($project['id']) ?>"
+        <?= (int) ($old['project_id'] ?? 0) === (int) $project['id'] ? 'selected' : '' ?>
+      >
         <?= e($project['title']) ?>
       </option>
     <?php endforeach; ?>
   </select>
-  <?php if (isset($errors['project_id'])): ?><div class="error"><?= e($errors['project_id']) ?></div><?php endif; ?>
 
-  <label for="priority">Приоритет</label>
-  <select id="priority" name="priority">
-    <?php foreach (['low' => 'Низкий', 'medium' => 'Средний', 'high' => 'Высокий'] as $code => $name): ?>
-      <option value="<?= e($code) ?>" <?= ($old['priority'] ?? 'medium') === $code ? 'selected' : '' ?>><?= e($name) ?></option>
-    <?php endforeach; ?>
-  </select>
-  <?php if (isset($errors['priority'])): ?><div class="error"><?= e($errors['priority']) ?></div><?php endif; ?>
+  <?php if (isset($errors['project_id'])): ?>
+    <div class="error"><?= e($errors['project_id']) ?></div>
+  <?php endif; ?>
 
-  <label for="due_date">Срок выполнения</label>
-  <input id="due_date" type="date" name="due_date" value="<?= e($old['due_date'] ?? '') ?>">
+  <label for="due_date">Дата встречи</label>
+  <input
+    id="due_date"
+    type="date"
+    name="due_date"
+    value="<?= e($old['due_date'] ?? '') ?>"
+    required
+  >
 
-  <p><button type="submit" class="btn">Создать задачу</button> <a href="/tasks">Отмена</a></p>
+  <?php if (isset($errors['due_date'])): ?>
+    <div class="error"><?= e($errors['due_date']) ?></div>
+  <?php endif; ?>
+
+  <label for="start_time">Время начала</label>
+  <input
+    id="start_time"
+    type="time"
+    name="start_time"
+    value="<?= e($old['start_time'] ?? '') ?>"
+    required
+  >
+
+  <?php if (isset($errors['start_time'])): ?>
+    <div class="error"><?= e($errors['start_time']) ?></div>
+  <?php endif; ?>
+
+  <label for="end_time">Время окончания</label>
+  <input
+    id="end_time"
+    type="time"
+    name="end_time"
+    value="<?= e($old['end_time'] ?? '') ?>"
+    required
+  >
+
+  <?php if (isset($errors['end_time'])): ?>
+    <div class="error"><?= e($errors['end_time']) ?></div>
+  <?php endif; ?>
+
+  <label for="participants">Количество участников</label>
+  <input
+    id="participants"
+    type="number"
+    name="participants"
+    min="1"
+    value="<?= e($old['participants'] ?? '1') ?>"
+    required
+  >
+
+  <?php if (isset($errors['participants'])): ?>
+    <div class="error"><?= e($errors['participants']) ?></div>
+  <?php endif; ?>
+
+  <p>
+    <button type="submit" class="btn">
+      Создать бронирование
+    </button>
+
+    <a href="/tasks">Отмена</a>
+  </p>
+
 </form>
