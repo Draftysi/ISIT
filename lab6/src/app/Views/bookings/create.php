@@ -1,59 +1,69 @@
 <?php
 // Форма создания бронирования переговорной комнаты.
-// $projects - список переговорных комнат.
+// $rooms - список переговорных комнат.
 // $errors - ошибки проверки.
 // $old - ранее введённые значения.
 
 $errors = $errors ?? [];
 $old = $old ?? [];
-$projects = $projects ?? [];
+$rooms = $rooms ?? [];
 ?>
 
 <h1>Новое бронирование</h1>
 
-<form action="/tasks" method="post" class="card form">
+<form action="/bookings" method="post" class="card form">
 
-  <label for="title">Тема встречи</label>
+  <label for="subject">Тема встречи</label>
   <input
-    id="title"
+    id="subject"
     type="text"
-    name="title"
-    value="<?= e($old['title'] ?? '') ?>"
+    name="subject"
+    value="<?= e($old['subject'] ?? '') ?>"
     required
   >
-  <?php if (isset($errors['title'])): ?>
-    <div class="error"><?= e($errors['title']) ?></div>
+
+  <?php if (isset($errors['subject'])): ?>
+    <div class="error">
+      <?= e($errors['subject']) ?>
+    </div>
   <?php endif; ?>
 
-  <label for="project_id">Переговорная комната</label>
-  <select id="project_id" name="project_id" required>
+  <label for="room_id">Переговорная комната</label>
+  <select id="room_id" name="room_id" required>
     <option value="">Выберите переговорную…</option>
 
-    <?php foreach ($projects as $project): ?>
+    <?php foreach ($rooms as $room): ?>
       <option
-        value="<?= e($project['id']) ?>"
-        <?= (int) ($old['project_id'] ?? 0) === (int) $project['id'] ? 'selected' : '' ?>
+        value="<?= e($room['id']) ?>"
+        <?= (int) ($old['room_id'] ?? 0) === (int) $room['id']
+            ? 'selected'
+            : '' ?>
       >
-        <?= e($project['title']) ?>
+        <?= e($room['name']) ?>
+        (<?= e($room['capacity']) ?> мест)
       </option>
     <?php endforeach; ?>
   </select>
 
-  <?php if (isset($errors['project_id'])): ?>
-    <div class="error"><?= e($errors['project_id']) ?></div>
+  <?php if (isset($errors['room_id'])): ?>
+    <div class="error">
+      <?= e($errors['room_id']) ?>
+    </div>
   <?php endif; ?>
 
-  <label for="due_date">Дата встречи</label>
+  <label for="date">Дата встречи</label>
   <input
-    id="due_date"
+    id="date"
     type="date"
-    name="due_date"
-    value="<?= e($old['due_date'] ?? '') ?>"
+    name="date"
+    value="<?= e($old['date'] ?? '') ?>"
     required
   >
 
-  <?php if (isset($errors['due_date'])): ?>
-    <div class="error"><?= e($errors['due_date']) ?></div>
+  <?php if (isset($errors['date'])): ?>
+    <div class="error">
+      <?= e($errors['date']) ?>
+    </div>
   <?php endif; ?>
 
   <label for="start_time">Время начала</label>
@@ -66,7 +76,9 @@ $projects = $projects ?? [];
   >
 
   <?php if (isset($errors['start_time'])): ?>
-    <div class="error"><?= e($errors['start_time']) ?></div>
+    <div class="error">
+      <?= e($errors['start_time']) ?>
+    </div>
   <?php endif; ?>
 
   <label for="end_time">Время окончания</label>
@@ -79,7 +91,9 @@ $projects = $projects ?? [];
   >
 
   <?php if (isset($errors['end_time'])): ?>
-    <div class="error"><?= e($errors['end_time']) ?></div>
+    <div class="error">
+      <?= e($errors['end_time']) ?>
+    </div>
   <?php endif; ?>
 
   <label for="participants">Количество участников</label>
@@ -93,7 +107,9 @@ $projects = $projects ?? [];
   >
 
   <?php if (isset($errors['participants'])): ?>
-    <div class="error"><?= e($errors['participants']) ?></div>
+    <div class="error">
+      <?= e($errors['participants']) ?>
+    </div>
   <?php endif; ?>
 
   <p>
@@ -101,7 +117,7 @@ $projects = $projects ?? [];
       Создать бронирование
     </button>
 
-    <a href="/tasks">Отмена</a>
+    <a href="/bookings">Отмена</a>
   </p>
 
 </form>

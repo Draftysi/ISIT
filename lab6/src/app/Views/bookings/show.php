@@ -1,7 +1,7 @@
 <?php
 // Шаблон просмотра одного бронирования.
-// $task - данные бронирования.
-// $project - выбранная переговорная комната.
+// $booking - данные бронирования.
+// $room - выбранная переговорная комната.
 
 $statusNames = [
     'active' => 'Активно',
@@ -9,44 +9,37 @@ $statusNames = [
     'cancelled' => 'Отменено',
 ];
 
-$status = $task['status'] ?? 'active';
+$status = $booking['status'] ?? 'active';
 
-$date = $task['due_date'] ?? '—';
-$startTime = $task['start_time'] ?? null;
-$endTime = $task['end_time'] ?? null;
+$date = $booking['date'] ?? '—';
+$startTime = $booking['start_time'] ?? null;
+$endTime = $booking['end_time'] ?? null;
 
 $time = ($startTime && $endTime)
     ? $startTime . '–' . $endTime
     : '—';
 
-$participants = $task['participants'] ?? '—';
+$participants = $booking['participants'] ?? '—';
 
-$roomName = $project['title'] ?? 'Не указана';
-$roomId = $project['id'] ?? null;
+$roomName = $room['name']
+    ?? $room['title']
+    ?? 'Не указана';
 ?>
 
 <p>
-  <a href="/tasks">← К списку бронирований</a>
+  <a href="/bookings">← К списку бронирований</a>
 </p>
 
 <div class="card">
-  <h1><?= e($task['title']) ?></h1>
+  <h1><?= e($booking['subject']) ?></h1>
 
   <dl class="meta">
 
     <dt>Номер бронирования</dt>
-    <dd><?= e($task['id']) ?></dd>
+    <dd><?= e($booking['id']) ?></dd>
 
     <dt>Переговорная комната</dt>
-    <dd>
-      <?php if ($roomId !== null): ?>
-        <a href="/projects/<?= e($roomId) ?>">
-          <?= e($roomName) ?>
-        </a>
-      <?php else: ?>
-        <?= e($roomName) ?>
-      <?php endif; ?>
-    </dd>
+    <dd><?= e($roomName) ?></dd>
 
     <dt>Дата встречи</dt>
     <dd><?= e($date) ?></dd>

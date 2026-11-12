@@ -1,22 +1,28 @@
 <?php
 
-// Таблица маршрутов приложения.
+// Таблица маршрутов системы бронирования переговорных комнат.
 
 use App\Controllers\HomeController;
-use App\Controllers\ProjectController;
-use App\Controllers\TaskController;
+use App\Controllers\BookingController;
+use App\Controllers\RoomController;
 
 // Главная страница.
 $router->get('/', [HomeController::class, 'index']);
 
-// Список задач и создание новой задачи.
-$router->get('/tasks', [TaskController::class, 'index']);
-$router->get('/tasks/create', [TaskController::class, 'create']);
-$router->post('/tasks', [TaskController::class, 'store']);
+// Список бронирований.
+$router->get('/bookings', [BookingController::class, 'index']);
 
-// Просмотр отдельной задачи.
-$router->get('/tasks/{id}', [TaskController::class, 'show']);
+// Форма создания нового бронирования.
+$router->get('/bookings/create', [BookingController::class, 'create']);
 
-// Список проектов и просмотр проекта.
-$router->get('/projects', [ProjectController::class, 'index']);
-$router->get('/projects/{id}', [ProjectController::class, 'show']);
+// Сохранение нового бронирования.
+$router->post('/bookings', [BookingController::class, 'store']);
+
+// Просмотр отдельного бронирования.
+$router->get('/bookings/{id}', [BookingController::class, 'show']);
+
+// Список переговорных комнат.
+$router->get('/rooms', [RoomController::class, 'index']);
+
+// Просмотр отдельной переговорной комнаты.
+$router->get('/rooms/{id}', [RoomController::class, 'show']);

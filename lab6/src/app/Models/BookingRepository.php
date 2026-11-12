@@ -3,13 +3,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-final class TaskRepository
+final class BookingRepository
 {
     private string $file;
 
     public function __construct()
     {
-        $this->file = BASE_PATH . '/storage/tasks.json';
+        $this->file = BASE_PATH . '/storage/bookings.json';
     }
 
     // Получить все бронирования.
@@ -21,45 +21,45 @@ final class TaskRepository
     // Найти бронирование по номеру.
     public function find(int $id): ?array
     {
-        foreach ($this->all() as $task) {
-            if ((int) $task['id'] === $id) {
-                return $task;
+        foreach ($this->all() as $booking) {
+            if ((int) $booking['id'] === $id) {
+                return $booking;
             }
         }
 
         return null;
     }
 
-    // Получить бронирования выбранной переговорной.
-    public function byProject(int $projectId): array
+    // Получить бронирования выбранной переговорной комнаты.
+    public function byRoom(int $roomId): array
     {
         return array_values(array_filter(
             $this->all(),
-            fn(array $task): bool =>
-                (int) $task['project_id'] === $projectId
+            fn(array $booking): bool =>
+                (int) $booking['room_id'] === $roomId
         ));
     }
 
     // Создать бронирование и сохранить его в JSON.
     public function add(array $data): array
     {
-        $tasks = $this->all();
+        $bookings = $this->all();
 
-        $ids = array_column($tasks, 'id');
+        $ids = array_column($bookings, 'id');
         $newId = ($ids ? max($ids) : 0) + 1;
 
-        $task = ['id' => $newId] + $data;
-        $tasks[] = $task;
+        $booking = ['id' => $newId] + $data;
+        $bookings[] = $booking;
 
         file_put_contents(
             $this->file,
             json_encode(
-                $tasks,
+                $bookings,
                 JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
             ),
             LOCK_EX
         );
 
-        return $task;
+        return $booking;
     }
 }

@@ -1,21 +1,19 @@
 <?php
-// Контроллер главной страницы.
-
 declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Models\ProjectRepository;
-use App\Models\TaskRepository;
+use App\Models\BookingRepository;
+use App\Models\RoomRepository;
 
 final class HomeController
 {
     // GET /
     public function index(): void
     {
-        // Получаем все бронирования и переговорные комнаты.
-        $tasks = (new TaskRepository())->all();
-        $projects = (new ProjectRepository())->all();
+        // Получаем бронирования и переговорные комнаты.
+        $bookings = (new BookingRepository())->all();
+        $rooms = (new RoomRepository())->all();
 
         // Подсчитываем бронирования по статусам.
         $byStatus = [
@@ -24,12 +22,12 @@ final class HomeController
             'cancelled' => 0,
         ];
 
-        foreach ($tasks as $task) {
-            $status = $task['status'] ?? '';
+        foreach ($bookings as $booking) {
+            $status = $booking['status'] ?? '';
 
-            if (in_array($status, ['new', 'in_progress', 'active'], true)) {
+            if ($status === 'active') {
                 $byStatus['active']++;
-            } elseif ($status === 'done') {
+            } elseif ($status === 'done' || $status === 'completed') {
                 $byStatus['done']++;
             } elseif ($status === 'cancelled') {
                 $byStatus['cancelled']++;
@@ -39,9 +37,13 @@ final class HomeController
         // Передаём данные в шаблон главной страницы.
         view('home', [
             'title' => 'Главная',
-            'total' => count($tasks),
+            'total' => count($bookings),
             'byStatus' => $byStatus,
-            'projectsCount' => count($projects),
+            'roomsCount' => count($rooms),
+
+            // Временно сохраняем старое имя переменной,
+            // пока не обновим шаблон home.php.
+            'projectsCount' => count($rooms),
         ]);
     }
 }
