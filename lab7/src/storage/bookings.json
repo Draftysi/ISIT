@@ -1,0 +1,132 @@
+[
+    {
+        "id": 1,
+        "room_id": 1,
+        "subject": "Еженедельное совещание отдела",
+        "date": "2026-11-05",
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "participants": 5,
+        "status": "active"
+    },
+    {
+        "id": 2,
+        "room_id": 1,
+        "subject": "Обсуждение результатов проекта",
+        "date": "2026-11-06",
+        "start_time": "11:00",
+        "end_time": "12:00",
+        "participants": 4,
+        "status": "active"
+    },
+    {
+        "id": 3,
+        "room_id": 2,
+        "subject": "Презентация для клиентов",
+        "date": "2026-11-09",
+        "start_time": "14:00",
+        "end_time": "15:30",
+        "participants": 8,
+        "status": "active"
+    },
+    {
+        "id": 4,
+        "room_id": 2,
+        "subject": "Встреча проектной команды",
+        "date": "2026-11-02",
+        "start_time": "10:00",
+        "end_time": "11:00",
+        "participants": 6,
+        "status": "done"
+    },
+    {
+        "id": 5,
+        "room_id": 3,
+        "subject": "Собеседование с кандидатом",
+        "date": "2026-11-10",
+        "start_time": "13:00",
+        "end_time": "14:00",
+        "participants": 3,
+        "status": "active"
+    },
+    {
+        "id": 6,
+        "room_id": 3,
+        "subject": "Планирование задач на неделю",
+        "date": "2026-11-11",
+        "start_time": "09:30",
+        "end_time": "10:30",
+        "participants": 4,
+        "status": "active"
+    },
+    {
+        "id": 7,
+        "room_id": 1,
+        "subject": "Обсуждение учебного проекта",
+        "date": "2026-11-05",
+        "start_time": "12:00",
+        "end_time": "13:00",
+        "participants": 4,
+        "status": "active"
+    },
+    {
+        "id": 8,
+        "room_id": 1,
+        "subject": "Проверка пересечения времени",
+        "date": "2026-11-05",
+        "start_time": "10:00",
+        "end_time": "11:00",
+        "participants": 3,
+        "status": "active"
+    },
+    {
+        "id": 9,
+        "room_id": 1,
+        "subject": "Тестовое бронирование",
+        "date": "2026-11-12",
+        "start_time": "14:00",
+        "end_time": "15:00",
+        "participants": 3,
+        "status": "active"
+    },
+    {
+        "id": 10,
+        "room_id": 1,
+        "subject": "Проверка работы системы",
+        "date": "2026-12-15",
+        "start_time": "16:00",
+        "end_time": "17:00",
+        "participants": 2,
+        "status": "active"
+    },
+    {
+        "id": 11,
+        "room_id": 1,
+        "subject": "Проверка создания бронирования2",
+        "date": "2026-11-20",
+        "start_time": "15:00",
+        "end_time": "16:00",
+        "participants": 2,
+        "status": "active"
+    },
+    {
+        "id": 12,
+        "room_id": 3,
+        "subject": "Проверка вместимости",
+        "date": "2026-11-25",
+        "start_time": "12:00",
+        "end_time": "13:00",
+        "participants": 4,
+        "status": "active"
+    },
+    {
+        "id": 13,
+        "room_id": 2,
+        "subject": "Защита учебного проекта",
+        "date": "2026-12-20",
+        "start_time": "12:00",
+        "end_time": "13:00",
+        "participants": 10,
+        "status": "active"
+    }
+]
