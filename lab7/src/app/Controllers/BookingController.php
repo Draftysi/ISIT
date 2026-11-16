@@ -1,212 +1,117 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Controllers;
+namespace App\Models;
 
-use App\Models\BookingRepository;
-use App\Models\RoomRepository;
-
-final class BookingController
+final class BookingRepository
 {
-    private BookingRepository $bookings;
-    private RoomRepository $rooms;
+    private string $file;
 
     public function __construct()
     {
-        $this->bookings = new BookingRepository();
-        $this->rooms = new RoomRepository();
+        $this->file = BASE_PATH . '/storage/bookings.json';
     }
 
-    // GET /bookings - список бронирований.
-    public function index(): void
+    // Получить все бронирования.
+    public function all(): array
     {
-        $status = $_GET['status'] ?? '';
-        $bookings = $this->bookings->all();
-
-        // Фильтрация по статусу.
-        if (in_array($status, ['active', 'done', 'cancelled'], true)) {
-            $bookings = array_values(array_filter(
-                $bookings,
-                fn(array $booking): bool =>
-                    ($booking['status'] ?? '') === $status
-            ));
-        }
-
-        view('bookings/index', [
-            'title' => 'Бронирования',
-            'bookings' => $bookings,
-            'rooms' => $this->rooms->all(),
-            'status' => $status,
-        ]);
+        return json_decode(file_get_contents($this->file), true) ?? [];
     }
 
-    // GET /bookings/{id} - просмотр бронирования.
-    public function show(string $id): void
+    // Найти бронирование по ID.
+    public function find(int $id): ?array
     {
-        $booking = $this->bookings->find((int) $id);
-
-        if ($booking === null) {
-            notFound();
-            return;
-        }
-
-        $room = $this->rooms->find(
-            (int) $booking['room_id']
-        );
-
-        view('bookings/show', [
-            'title' => $booking['subject'],
-            'booking' => $booking,
-            'room' => $room,
-        ]);
-    }
-
-    // GET /bookings/create - форма создания.
-    public function create(): void
-    {
-        view('bookings/create', [
-            'title' => 'Новое бронирование',
-            'rooms' => $this->rooms->all(),
-            'errors' => [],
-            'old' => [],
-        ]);
-    }
-
-    // POST /bookings - сохранение бронирования.
-    public function store(): void
-    {
-        $subject = trim($_POST['subject'] ?? '');
-        $roomId = (int) ($_POST['room_id'] ?? 0);
-        $date = $_POST['date'] ?? '';
-        $startTime = $_POST['start_time'] ?? '';
-        $endTime = $_POST['end_time'] ?? '';
-
-        $participants = filter_var(
-            $_POST['participants'] ?? null,
-            FILTER_VALIDATE_INT,
-            ['options' => ['min_range' => 1]]
-        );
-
-        $errors = [];
-
-        // Проверка темы встречи.
-        if (!preg_match('/^.{3,}$/us', $subject)) {
-            $errors['subject'] =
-                'Укажите тему встречи (не менее 3 символов)';
-        }
-
-        // Проверка переговорной комнаты.
-        $room = $this->rooms->find($roomId);
-
-        if ($room === null) {
-            $errors['room_id'] =
-                'Выберите переговорную комнату';
-        }
-
-        // Проверка даты.
-        $parsedDate = \DateTimeImmutable::createFromFormat(
-            '!Y-m-d',
-            $date
-        );
-
-        if (
-            $parsedDate === false ||
-            $parsedDate->format('Y-m-d') !== $date
-        ) {
-            $errors['date'] =
-                'Укажите корректную дату встречи';
-        }
-
-        // Проверка времени.
-        $timePattern = '/^([01][0-9]|2[0-3]):[0-5][0-9]$/';
-
-        if (
-            !preg_match($timePattern, $startTime) ||
-            !preg_match($timePattern, $endTime)
-        ) {
-            $errors['start_time'] =
-                'Укажите корректное время встречи';
-        } elseif ($startTime >= $endTime) {
-            $errors['end_time'] =
-                'Время окончания должно быть позже начала';
-        }
-
-        // Проверка количества участников.
-        if ($participants === false || $participants === null) {
-            $errors['participants'] =
-                'Укажите количество участников';
-        } elseif (
-            $room !== null &&
-            $participants > (int) $room['capacity']
-        ) {
-            $errors['participants'] =
-                'Количество участников превышает вместимость комнаты';
-        }
-
-        // Проверка пересечения с другими бронированиями.
-        if (
-            !isset($errors['room_id']) &&
-            !isset($errors['date']) &&
-            !isset($errors['start_time']) &&
-            !isset($errors['end_time'])
-        ) {
-            foreach ($this->bookings->all() as $existing) {
-                // Сравниваем бронирования одной комнаты
-                // на одну дату.
-                if (
-                    (int) $existing['room_id'] !== $roomId ||
-                    $existing['date'] !== $date
-                ) {
-                    continue;
-                }
-
-                // Завершённые и отменённые не учитываем.
-                if (in_array(
-                    $existing['status'] ?? '',
-                    ['done', 'cancelled'],
-                    true
-                )) {
-                    continue;
-                }
-
-                // Проверяем пересечение интервалов.
-                if (
-                    $startTime < $existing['end_time'] &&
-                    $endTime > $existing['start_time']
-                ) {
-                    $errors['start_time'] =
-                        'Переговорная уже занята в выбранное время';
-                    break;
-                }
+        foreach ($this->all() as $booking) {
+            if ((int) $booking['id'] === $id) {
+                return $booking;
             }
         }
 
-        // При ошибках повторно показываем форму.
-        if ($errors) {
-            http_response_code(422);
+        return null;
+    }
 
-            view('bookings/create', [
-                'title' => 'Новое бронирование',
-                'rooms' => $this->rooms->all(),
-                'errors' => $errors,
-                'old' => $_POST,
-            ]);
+    // Получить бронирования выбранной комнаты.
+    public function byRoom(int $roomId): array
+    {
+        return array_values(array_filter(
+            $this->all(),
+            fn(array $booking): bool =>
+                (int) $booking['room_id'] === $roomId
+        ));
+    }
 
-            return;
+    // Создать новое бронирование.
+    public function add(array $data): array
+    {
+        $bookings = $this->all();
+
+        $ids = array_column($bookings, 'id');
+        $newId = ($ids ? max($ids) : 0) + 1;
+
+        $booking = ['id' => $newId] + $data;
+        $bookings[] = $booking;
+
+        $this->save($bookings);
+
+        return $booking;
+    }
+
+    // Изменить существующее бронирование.
+    public function update(int $id, array $data): ?array
+    {
+        $bookings = $this->all();
+
+        foreach ($bookings as $index => $booking) {
+            if ((int) $booking['id'] !== $id) {
+                continue;
+            }
+
+            // Идентификатор изменять нельзя.
+            unset($data['id']);
+
+            $bookings[$index] = array_replace(
+                $booking,
+                $data
+            );
+
+            $this->save($bookings);
+
+            return $bookings[$index];
         }
 
-        // Сохраняем бронирование в JSON-файле.
-        $this->bookings->add([
-            'room_id' => $roomId,
-            'subject' => $subject,
-            'date' => $date,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'participants' => $participants,
-            'status' => 'active',
-        ]);
+        return null;
+    }
 
-        // После сохранения открываем список.
-        redirect('/bookings');
+    // Удалить бронирование.
+    public function delete(int $id): bool
+    {
+        $bookings = $this->all();
+
+        foreach ($bookings as $index => $booking) {
+            if ((int) $booking['id'] !== $id) {
+                continue;
+            }
+
+            array_splice($bookings, $index, 1);
+
+            $this->save($bookings);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // Сохранить данные в JSON-файл.
+    private function save(array $bookings): void
+    {
+        file_put_contents(
+            $this->file,
+            json_encode(
+                $bookings,
+                JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+            ),
+            LOCK_EX
+        );
     }
 }
