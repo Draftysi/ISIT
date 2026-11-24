@@ -1,0 +1,56 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "users" as users {
+  * id : INTEGER <<PK>>
+  --
+  full_name : VARCHAR
+  email : VARCHAR
+}
+
+entity "user_profiles" as profiles {
+  * user_id : INTEGER <<PK, FK>>
+  --
+  phone : VARCHAR
+  department : VARCHAR
+}
+
+entity "rooms" as rooms {
+  * id : INTEGER <<PK>>
+  --
+  room_number : VARCHAR
+  capacity : INTEGER
+  location : VARCHAR
+}
+
+entity "equipment" as equipment {
+  * id : INTEGER <<PK>>
+  --
+  name : VARCHAR
+}
+
+entity "room_equipment" as room_equipment {
+  * room_id : INTEGER <<PK, FK>>
+  * equipment_id : INTEGER <<PK, FK>>
+}
+
+entity "bookings" as bookings {
+  * id : INTEGER <<PK>>
+  --
+  room_id : INTEGER <<FK>>
+  user_id : INTEGER <<FK>>
+  subject : VARCHAR
+  starts_at : TIMESTAMP
+  ends_at : TIMESTAMP
+  participants : INTEGER
+  status : VARCHAR
+}
+
+users ||--o| profiles
+users |o--o{ bookings
+rooms ||--o{ bookings
+rooms ||--o{ room_equipment
+equipment ||--o{ room_equipment
+
+@enduml
