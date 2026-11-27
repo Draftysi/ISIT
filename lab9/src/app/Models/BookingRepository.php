@@ -3,118 +3,160 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Core\Database;
+use PDO;
+
 final class BookingRepository
 {
-    private string $file;
+    private PDO $db;
+
+    private const FIELDS = "
+        id,
+        room_id,
+        user_id,
+        subject,
+        to_char(starts_at, 'YYYY-MM-DD') AS date,
+        to_char(starts_at, 'HH24:MI') AS start_time,
+        to_char(ends_at, 'HH24:MI') AS end_time,
+        participants,
+        status
+    ";
 
     public function __construct()
     {
-        $this->file = BASE_PATH . '/storage/bookings.json';
+        $this->db = Database::getConnection();
     }
 
     // Получить все бронирования.
     public function all(): array
     {
-        return json_decode(
-            file_get_contents($this->file),
-            true
-        ) ?? [];
+        return $this->db->query(
+            'SELECT ' . self::FIELDS .
+            ' FROM bookings ORDER BY id'
+        )->fetchAll();
+    }
+
+        // Поиск бронирований по теме встречи.
+    public function search(string $query): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT ' . self::FIELDS .
+            " FROM bookings
+              WHERE subject ILIKE :q ESCAPE '!'
+              ORDER BY id"
+        );
+
+        $query = strtr($query, [
+            '!' => '!!',
+            '%' => '!%',
+            '_' => '!_'
+        ]);
+
+        $stmt->execute(['q' => '%' . $query . '%']);
+
+        return $stmt->fetchAll();
     }
 
     // Найти бронирование по ID.
     public function find(int $id): ?array
     {
-        foreach ($this->all() as $booking) {
-            if ((int) $booking['id'] === $id) {
-                return $booking;
-            }
-        }
+        $stmt = $this->db->prepare(
+            'SELECT ' . self::FIELDS .
+            ' FROM bookings WHERE id = :id'
+        );
 
-        return null;
+        $stmt->execute(['id' => $id]);
+
+        return $stmt->fetch() ?: null;
     }
 
     // Получить бронирования выбранной комнаты.
     public function byRoom(int $roomId): array
     {
-        return array_values(array_filter(
-            $this->all(),
-            fn(array $booking): bool =>
-                (int) $booking['room_id'] === $roomId
-        ));
+        $stmt = $this->db->prepare(
+            'SELECT ' . self::FIELDS .
+            ' FROM bookings WHERE room_id = :room_id
+              ORDER BY starts_at'
+        );
+
+        $stmt->execute(['room_id' => $roomId]);
+
+        return $stmt->fetchAll();
     }
 
     // Создать бронирование.
     public function add(array $data): array
     {
-        $bookings = $this->all();
+        $stmt = $this->db->prepare(
+            'INSERT INTO bookings (
+                room_id, user_id, subject,
+                starts_at, ends_at, participants, status
+            ) VALUES (
+                :room_id, :user_id, :subject,
+                :starts_at, :ends_at, :participants, :status
+            ) RETURNING ' . self::FIELDS
+        );
 
-        $ids = array_column($bookings, 'id');
-        $newId = ($ids ? max($ids) : 0) + 1;
+        $stmt->execute($this->parameters($data));
 
-        $booking = ['id' => $newId] + $data;
-
-        $bookings[] = $booking;
-
-        $this->save($bookings);
-
-        return $booking;
+        return $stmt->fetch();
     }
 
-    // Изменить существующее бронирование.
+    // Изменить бронирование.
     public function update(int $id, array $data): ?array
     {
-        $bookings = $this->all();
+        $existing = $this->find($id);
 
-        foreach ($bookings as $index => $booking) {
-            if ((int) $booking['id'] === $id) {
-                // ID бронирования не изменяется.
-                unset($data['id']);
-
-                $bookings[$index] = array_replace(
-                    $booking,
-                    $data
-                );
-
-                $this->save($bookings);
-
-                return $bookings[$index];
-            }
+        if ($existing === null) {
+            return null;
         }
 
-        return null;
+        $data = array_replace($existing, $data);
+
+        $stmt = $this->db->prepare(
+            'UPDATE bookings SET
+                room_id = :room_id,
+                user_id = :user_id,
+                subject = :subject,
+                starts_at = :starts_at,
+                ends_at = :ends_at,
+                participants = :participants,
+                status = :status
+            WHERE id = :id
+            RETURNING ' . self::FIELDS
+        );
+
+        $params = $this->parameters($data);
+        $params['id'] = $id;
+
+        $stmt->execute($params);
+
+        return $stmt->fetch() ?: null;
     }
 
     // Удалить бронирование.
     public function delete(int $id): bool
     {
-        $bookings = $this->all();
+        $stmt = $this->db->prepare(
+            'DELETE FROM bookings WHERE id = :id'
+        );
 
-        $filtered = array_values(array_filter(
-            $bookings,
-            fn(array $booking): bool =>
-                (int) $booking['id'] !== $id
-        ));
+        $stmt->execute(['id' => $id]);
 
-        // Если количество не изменилось, запись не найдена.
-        if (count($filtered) === count($bookings)) {
-            return false;
-        }
-
-        $this->save($filtered);
-
-        return true;
+        return $stmt->rowCount() > 0;
     }
 
-    // Сохранить список бронирований в JSON.
-    private function save(array $bookings): void
+    // Преобразовать данные API в параметры SQL.
+    private function parameters(array $data): array
     {
-        file_put_contents(
-            $this->file,
-            json_encode(
-                $bookings,
-                JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
-            ),
-            LOCK_EX
-        );
+        return [
+            'room_id' => $data['room_id'],
+            'user_id' => $data['user_id'] ?? null,
+            'subject' => $data['subject'],
+            'starts_at' => $data['date'] . ' ' . $data['start_time'],
+            'ends_at' => $data['date'] . ' ' . $data['end_time'],
+            'participants' => $data['participants'],
+            'status' => $data['status'] ?? 'active',
+        ];
     }
 }

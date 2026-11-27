@@ -1,4 +1,3 @@
-
 const form = document.getElementById("bookingForm");
 const roomSelect = document.getElementById("room");
 const loadButton = document.getElementById("loadButton");
@@ -8,25 +7,191 @@ const bookingTable = document.getElementById("bookingTable");
 const message = document.getElementById("message");
 const counter = document.getElementById("counter");
 
-// Номер последнего запроса для защиты от дублирования
+const loginForm = document.getElementById("loginForm");
+const loginSection = document.getElementById("loginSection");
+const loginMessage = document.getElementById("loginMessage");
+const appSection = document.getElementById("appSection");
+const userInfo = document.getElementById("userInfo");
+const logoutButton = document.getElementById("logoutButton");
+
+let token = sessionStorage.getItem("token");
+let currentUser = null;
+let rooms = [];
 let requestNumber = 0;
 
-// Вывод сообщений
+// Вывод сообщений.
 function showMessage(text, isError = false) {
     message.textContent = text;
     message.style.color = isError ? "red" : "#253b53";
 }
 
-// Загрузка списка переговорных комнат
-async function loadRooms() {
-    try {
-        const response = await fetch("/api/rooms");
+// Запрос к REST API.
+async function api(url, method = "GET", body = null) {
+    const headers = {
+        "Accept": "application/json"
+    };
 
-        if (!response.ok) {
-            throw new Error("Ошибка сервера: " + response.status);
+    const requestToken = token;
+
+    if (requestToken) {
+        headers.Authorization = "Bearer " + requestToken;
+    }
+
+    const options = { method, headers };
+
+    if (body !== null) {
+        headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(body);
+    }
+
+    let response;
+
+    try {
+        response = await fetch(url, options);
+    } catch (error) {
+        throw new Error(
+            "Не удалось подключиться к серверу. Проверьте соединение и повторите попытку."
+        );
+    }
+
+    if (response.status === 204) {
+        return null;
+    }
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        if (
+            response.status === 401 &&
+            url !== "/api/login" &&
+            requestToken === token
+        ) {
+            showLogin("Войдите в систему повторно");
         }
 
-        const data = await response.json();
+        const errors = Object.values(data?.errors || {});
+
+        throw new Error(
+            errors.length
+                ? errors.join(". ")
+                : data?.error || "Ошибка сервера: " + response.status
+        );
+    }
+
+    if (data === null) {
+        throw new Error("Некорректный ответ сервера");
+    }
+
+    return data;
+}
+
+// Отображение формы входа.
+function showLogin(text = "") {
+    token = null;
+    currentUser = null;
+    rooms = [];
+    requestNumber++;
+
+    sessionStorage.removeItem("token");
+
+    bookingTable.replaceChildren();
+    roomSelect.replaceChildren();
+    form.reset();
+
+    statusFilter.value = "";
+    searchInput.value = "";
+    loadButton.disabled = false;
+
+    updateCounter();
+    showMessage("");
+
+    appSection.hidden = true;
+    loginSection.hidden = false;
+
+    loginMessage.textContent = text;
+    loginMessage.style.color = "red";
+}
+
+// Отображение основного интерфейса.
+async function showApp(user) {
+    currentUser = user;
+
+    const role = user.role === "admin"
+        ? "Администратор"
+        : "Пользователь";
+
+    userInfo.textContent = user.name + " — " + role;
+
+    loginSection.hidden = true;
+    appSection.hidden = false;
+    loginMessage.textContent = "";
+
+    const activeToken = token;
+
+    await loadRooms();
+
+    if (token && token === activeToken) {
+        await refreshList();
+    }
+}
+
+// Вход в систему.
+loginForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const button = loginForm.querySelector("button");
+    button.disabled = true;
+
+    try {
+        const result = await api("/api/login", "POST", {
+            email: document.getElementById("email").value.trim(),
+            password: document.getElementById("password").value
+        });
+
+        token = result.token;
+        sessionStorage.setItem("token", token);
+
+        loginForm.reset();
+
+        await showApp(result.user);
+
+    } catch (error) {
+        loginMessage.textContent = error.message;
+        loginMessage.style.color = "red";
+    } finally {
+        button.disabled = false;
+    }
+});
+
+// Выход из системы.
+logoutButton.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+
+    try {
+        await api("/api/logout", "POST");
+        showLogin();
+
+    } catch (error) {
+        if (token) {
+            showMessage(error.message, true);
+        }
+    } finally {
+        logoutButton.disabled = false;
+    }
+});
+
+// Загрузка переговорных комнат.
+async function loadRooms() {
+    const activeToken = token;
+
+    try {
+        const result = await api("/api/rooms");
+
+        if (activeToken !== token) {
+            return;
+        }
+
+        rooms = result.data;
 
         roomSelect.replaceChildren();
 
@@ -35,36 +200,49 @@ async function loadRooms() {
         firstOption.textContent = "Выберите комнату";
         roomSelect.appendChild(firstOption);
 
-        data.forEach(room => {
+        rooms.forEach(room => {
             const option = document.createElement("option");
+
             option.value = room.id;
-            option.textContent = room.name;
+            option.textContent =
+                room.name + " (до " + room.capacity + " чел.)";
+
             roomSelect.appendChild(option);
         });
 
     } catch (error) {
-        showMessage(
-            "Не удалось загрузить комнаты: " + error.message,
-            true
-        );
+        if (token) {
+            showMessage(
+                "Не удалось загрузить комнаты: " + error.message,
+                true
+            );
+        }
     }
 }
 
-// Создание строки таблицы
+// Создание строки таблицы.
 function createBookingRow(booking) {
     const row = document.createElement("tr");
     row.dataset.id = booking.id;
 
-    const room = rooms.find(item => item.id === booking.roomId);
+    const room = rooms.find(
+        item => Number(item.id) === Number(booking.room_id)
+    );
+
+    const statuses = {
+        active: "Активно",
+        done: "Завершено",
+        cancelled: "Отменено"
+    };
 
     const values = [
         booking.id,
         room ? room.name : "Неизвестная комната",
         booking.date,
-        booking.startTime + " - " + booking.endTime,
+        booking.start_time + " - " + booking.end_time,
         booking.subject,
         booking.participants,
-        booking.status === "active" ? "Активно" : "Отменено"
+        statuses[booking.status] || booking.status
     ];
 
     values.forEach(value => {
@@ -76,40 +254,49 @@ function createBookingRow(booking) {
     const actionCell = document.createElement("td");
     const button = document.createElement("button");
 
-    if (booking.status === "active") {
-        button.textContent = "Отменить";
-        button.title = "Отменить бронирование";
+    const canEdit =
+        currentUser.role === "admin" ||
+        Number(booking.user_id) === Number(currentUser.id);
 
-        button.addEventListener("click", () => {
-            cancelBooking(booking.id);
-        });
-    } else {
-        button.textContent = "Отменено";
+    if (booking.status !== "active") {
+        button.textContent = statuses[booking.status];
         button.disabled = true;
         row.style.color = "gray";
+
+    } else if (canEdit) {
+        button.textContent = "Отменить";
+
+        button.addEventListener("click", () => {
+            cancelBooking(booking.id, button);
+        });
+
+    } else {
+        button.textContent = "Нет доступа";
+        button.disabled = true;
     }
 
     actionCell.appendChild(button);
     row.appendChild(actionCell);
-
     bookingTable.appendChild(row);
 }
 
-// Обновление счётчика
+// Обновление счётчика.
 function updateCounter() {
     counter.textContent =
         "Бронирований: " + bookingTable.rows.length;
 }
 
-// Загрузка бронирований с учебного сервера
+// Загрузка бронирований.
 async function refreshList() {
-    // Каждый новый запрос получает свой номер
+    if (!token) {
+        return;
+    }
+
     const currentRequest = ++requestNumber;
 
     loadButton.disabled = true;
     showMessage("Загрузка...");
 
-    // Очищаем таблицу перед загрузкой
     bookingTable.replaceChildren();
     updateCounter();
 
@@ -124,43 +311,29 @@ async function refreshList() {
             params.set("q", searchInput.value.trim());
         }
 
-        const url = "/api/bookings?" + params.toString();
-        const response = await fetch(url);
-
-        // Если уже начался более новый запрос,
-        // результат старого больше не используем
-        if (currentRequest !== requestNumber) {
-            return;
-        }
-
-        if (!response.ok) {
-            throw new Error("Ошибка сервера: " + response.status);
-        }
-
-        const data = await response.json();
+        const result = await api(
+            "/api/bookings?" + params.toString()
+        );
 
         if (currentRequest !== requestNumber) {
             return;
         }
 
-        // Убираем старые строки
-        bookingTable.replaceChildren();
-
-        // Убираем возможные повторения по ID
-        const uniqueBookings = [
+                const uniqueBookings = [
             ...new Map(
-                data.map(booking => [booking.id, booking])
+                result.data.map(booking => [booking.id, booking])
             ).values()
         ];
 
-        if (uniqueBookings.length === 0) {
-            showMessage(
-                "Бронирования не найдены. Измените фильтр или поиск."
-            );
-        } else {
-            uniqueBookings.forEach(createBookingRow);
-            showMessage("Данные успешно загружены");
-        }
+        bookingTable.replaceChildren();
+
+        uniqueBookings.forEach(createBookingRow);
+
+        showMessage(
+            uniqueBookings.length
+                ? "Данные успешно загружены"
+                : "Бронирования не найдены"
+        );
 
         updateCounter();
 
@@ -172,10 +345,7 @@ async function refreshList() {
         bookingTable.replaceChildren();
         updateCounter();
 
-        showMessage(
-            "Не удалось загрузить данные: " + error.message,
-            true
-        );
+        showMessage(error.message, true);
 
     } finally {
         if (currentRequest === requestNumber) {
@@ -184,8 +354,8 @@ async function refreshList() {
     }
 }
 
-// Создание нового бронирования
-function onFormSubmit(event) {
+// Создание бронирования.
+async function onFormSubmit(event) {
     event.preventDefault();
 
     const roomId = Number(roomSelect.value);
@@ -197,22 +367,10 @@ function onFormSubmit(event) {
         document.getElementById("participants").value
     );
 
-    const room = rooms.find(item => item.id === roomId);
+    const room = rooms.find(
+        item => Number(item.id) === roomId
+    );
 
-    // Проверка заполнения формы
-    if (
-        !roomSelect.value ||
-        !date ||
-        !startTime ||
-        !endTime ||
-        !subject ||
-        !participants
-    ) {
-        showMessage("Заполните все поля формы", true);
-        return;
-    }
-
-    // Проверка темы встречи
     if (subject.length < 3) {
         showMessage(
             "Тема встречи должна содержать не менее 3 символов",
@@ -221,7 +379,6 @@ function onFormSubmit(event) {
         return;
     }
 
-    // Проверка времени
     if (startTime >= endTime) {
         showMessage(
             "Время окончания должно быть позже начала",
@@ -230,8 +387,12 @@ function onFormSubmit(event) {
         return;
     }
 
-    // Проверка количества участников
-    if (!room || participants < 1 || participants > room.capacity) {
+    if (
+        !room ||
+        !Number.isInteger(participants) ||
+        participants < 1 ||
+        participants > room.capacity
+    ) {
         showMessage(
             "Проверьте количество участников и вместимость комнаты",
             true
@@ -239,62 +400,85 @@ function onFormSubmit(event) {
         return;
     }
 
-    // Проверка пересечения с другими бронированиями
-    const occupied = bookings.some(item =>
-        item.roomId === roomId &&
-        item.date === date &&
-        item.status === "active" &&
-        startTime < item.endTime &&
-        endTime > item.startTime
-    );
+    const button = form.querySelector("button");
+    button.disabled = true;
 
-    if (occupied) {
-        showMessage(
-            "Комната уже забронирована на это время",
-            true
-        );
-        return;
-    }
+    const activeToken = token;
 
-    // Создание нового бронирования
-    const newBooking = {
-        id: Math.max(0, ...bookings.map(item => item.id)) + 1,
-        roomId: roomId,
-        date: date,
-        startTime: startTime,
-        endTime: endTime,
-        subject: subject,
-        participants: participants,
-        status: "active"
-    };
+    try {
+        await api("/api/bookings", "POST", {
+            room_id: roomId,
+            date: date,
+            start_time: startTime,
+            end_time: endTime,
+            subject: subject,
+            participants: participants,
+            status: "active"
+        });
 
-    bookings.push(newBooking);
+        if (activeToken !== token) {
+            return;
+        }
 
-    // Очистка формы и фильтров
-    form.reset();
-    statusFilter.value = "";
-    searchInput.value = "";
+        form.reset();
+        statusFilter.value = "";
+        searchInput.value = "";
 
-    // Обновление таблицы
-    refreshList();
-}
+        await refreshList();
 
-// Отмена бронирования
-function cancelBooking(id) {
-    const booking = bookings.find(item => item.id === id);
-
-    if (booking && booking.status === "active") {
-        booking.status = "cancelled";
-        refreshList();
+    } catch (error) {
+        if (activeToken === token) {
+            showMessage(error.message, true);
+        }
+    } finally {
+        button.disabled = false;
     }
 }
 
-// Обработчики событий
+// Отмена бронирования.
+async function cancelBooking(id, button) {
+    button.disabled = true;
+
+    const activeToken = token;
+
+    try {
+        await api("/api/bookings/" + id, "PATCH", {
+            status: "cancelled"
+        });
+
+        if (activeToken === token) {
+            await refreshList();
+        }
+
+    } catch (error) {
+        if (activeToken === token) {
+            showMessage(error.message, true);
+        }
+    } finally {
+        button.disabled = false;
+    }
+}
+
+// Обработчики событий.
 form.addEventListener("submit", onFormSubmit);
 loadButton.addEventListener("click", refreshList);
 statusFilter.addEventListener("change", refreshList);
 searchInput.addEventListener("input", refreshList);
 
-// Загрузка данных при открытии страницы
-loadRooms();
-refreshList();
+// Восстановление авторизации после обновления страницы.
+async function init() {
+    if (!token) {
+        showLogin();
+        return;
+    }
+
+    try {
+        const result = await api("/api/me");
+        await showApp(result.data);
+
+    } catch (error) {
+        showLogin(error.message);
+    }
+}
+
+init();

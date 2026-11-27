@@ -3,109 +3,190 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Core\Database;
+use PDO;
+
 final class RoomRepository
 {
-    private string $file;
+    private PDO $db;
+
+    private const SELECT_ROOMS = "
+        SELECT
+            r.id,
+            r.room_number,
+            'Переговорная №' || r.room_number AS name,
+            r.capacity,
+            r.location,
+            COALESCE((
+                SELECT string_agg(e.name, ', ' ORDER BY e.id)
+                FROM room_equipment re
+                JOIN equipment e ON e.id = re.equipment_id
+                WHERE re.room_id = r.id
+            ), '') AS equipment
+        FROM rooms r
+    ";
 
     public function __construct()
     {
-        $this->file = BASE_PATH . '/storage/rooms.json';
+        $this->db = Database::getConnection();
     }
 
     // Получить все переговорные комнаты.
     public function all(): array
     {
-        return json_decode(
-            file_get_contents($this->file),
-            true
-        ) ?? [];
+        return $this->db->query(
+            self::SELECT_ROOMS . ' ORDER BY r.id'
+        )->fetchAll();
     }
 
     // Найти переговорную комнату по ID.
     public function find(int $id): ?array
     {
-        foreach ($this->all() as $room) {
-            if ((int) $room['id'] === $id) {
-                return $room;
-            }
-        }
+        $stmt = $this->db->prepare(
+            self::SELECT_ROOMS . ' WHERE r.id = :id'
+        );
 
-        return null;
+        $stmt->execute(['id' => $id]);
+
+        return $stmt->fetch() ?: null;
     }
 
-    // Создать новую переговорную комнату.
+    // Создать переговорную комнату.
     public function add(array $data): array
     {
-        $rooms = $this->all();
+        $this->db->beginTransaction();
 
-        $ids = array_column($rooms, 'id');
-        $newId = $ids ? max($ids) + 1 : 1;
+        try {
+            $stmt = $this->db->prepare(
+                'INSERT INTO rooms (
+                    room_number, capacity, location
+                ) VALUES (
+                    :room_number, :capacity, :location
+                ) RETURNING id'
+            );
 
-        $room = ['id' => $newId] + $data;
+            $stmt->execute([
+                'room_number' => $data['room_number'],
+                'capacity' => $data['capacity'],
+                'location' => $data['location'],
+            ]);
 
-        $rooms[] = $room;
+            $id = (int) $stmt->fetchColumn();
 
-        $this->save($rooms);
+            $this->saveEquipment($id, $data['equipment']);
 
-        return $room;
+            $room = $this->find($id);
+
+            $this->db->commit();
+
+            return $room;
+
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
-    // Изменить существующую переговорную комнату.
+    // Изменить переговорную комнату.
     public function update(int $id, array $data): ?array
     {
-        $rooms = $this->all();
+        $existing = $this->find($id);
 
-        foreach ($rooms as $index => $room) {
-            if ((int) $room['id'] === $id) {
-                $rooms[$index] = ['id' => $id] + $data;
-
-                $this->save($rooms);
-
-                return $rooms[$index];
-            }
+        if ($existing === null) {
+            return null;
         }
 
-        return null;
+        $data = array_replace($existing, $data);
+
+        $this->db->beginTransaction();
+
+        try {
+            $stmt = $this->db->prepare(
+                'UPDATE rooms SET
+                    room_number = :room_number,
+                    capacity = :capacity,
+                    location = :location
+                WHERE id = :id'
+            );
+
+            $stmt->execute([
+                'id' => $id,
+                'room_number' => $data['room_number'],
+                'capacity' => $data['capacity'],
+                'location' => $data['location'],
+            ]);
+
+            $this->saveEquipment($id, $data['equipment']);
+
+            $room = $this->find($id);
+
+            $this->db->commit();
+
+            return $room;
+
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     // Удалить переговорную комнату.
     public function delete(int $id): bool
     {
-        $rooms = $this->all();
-
-        $filtered = array_values(array_filter(
-            $rooms,
-            fn(array $room): bool =>
-                (int) $room['id'] !== $id
-        ));
-
-        if (count($filtered) === count($rooms)) {
-            return false;
-        }
-
-        $this->save($filtered);
-
-        return true;
-    }
-
-    // Сохранить данные в JSON-файл.
-    private function save(array $rooms): void
-    {
-        $result = file_put_contents(
-            $this->file,
-            json_encode(
-                $rooms,
-                JSON_UNESCAPED_UNICODE |
-                JSON_PRETTY_PRINT |
-                JSON_THROW_ON_ERROR
-            ),
-            LOCK_EX
+        $stmt = $this->db->prepare(
+            'DELETE FROM rooms WHERE id = :id'
         );
 
-        if ($result === false) {
-            throw new \RuntimeException(
-                'Не удалось сохранить данные переговорных комнат'
+        $stmt->execute(['id' => $id]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    // Сохранить оборудование переговорной комнаты.
+    private function saveEquipment(
+        int $roomId,
+        string $equipment
+    ): void {
+        $stmt = $this->db->prepare(
+            'DELETE FROM room_equipment
+             WHERE room_id = :room_id'
+        );
+
+        $stmt->execute(['room_id' => $roomId]);
+
+        $items = array_unique(
+            array_map('trim', explode(',', $equipment))
+        );
+
+        foreach ($items as $name) {
+            if ($name === '') {
+                continue;
+            }
+
+            $stmt = $this->db->prepare(
+                'INSERT INTO equipment (name)
+                 VALUES (:name)
+                 ON CONFLICT (name)
+                 DO UPDATE SET name = EXCLUDED.name
+                 RETURNING id'
             );
+
+            $stmt->execute(['name' => $name]);
+
+            $equipmentId = (int) $stmt->fetchColumn();
+
+            $stmt = $this->db->prepare(
+                'INSERT INTO room_equipment (
+                    room_id, equipment_id
+                ) VALUES (
+                    :room_id, :equipment_id
+                )'
+            );
+
+            $stmt->execute([
+                'room_id' => $roomId,
+                'equipment_id' => $equipmentId,
+            ]);
         }
     }
 }

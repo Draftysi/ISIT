@@ -1,0 +1,42 @@
+@startuml
+title Взаимодействие клиента, сервера и базы данных
+
+actor "Пользователь" as User
+participant "Клиент\nHTML, CSS, JavaScript" as Client
+participant "REST API\nPHP" as API
+participant "Авторизация\nAuth" as Auth
+participant "Репозитории" as Repo
+database "PostgreSQL\nDocker" as DB
+
+User -> Client: Ввод почты и пароля
+Client -> API: POST /api/login
+API -> Repo: Поиск пользователя
+Repo -> DB: SELECT
+DB --> Repo: Данные пользователя
+Repo --> API: Данные и хеш пароля
+API -> API: Проверка пароля
+API -> Auth: Создание токена
+Auth -> DB: Сохранение хеша токена
+API --> Client: 200 OK, токен и роль
+
+User -> Client: Просмотр бронирований
+Client -> API: GET /api/bookings\nAuthorization: Bearer token
+API -> Auth: Проверка токена
+Auth -> DB: Поиск токена
+DB --> Auth: Данные пользователя
+Auth --> API: Пользователь и роль
+API -> Repo: Получение бронирований
+Repo -> DB: SELECT
+DB --> Repo: Список бронирований
+Repo --> API: Данные
+API --> Client: 200 OK, JSON
+Client --> User: Отображение таблицы
+
+User -> Client: Выход из системы
+Client -> API: POST /api/logout
+API -> Auth: Отзыв токена
+Auth -> DB: DELETE
+API --> Client: 204 No Content
+Client --> User: Форма входа
+
+@enduml

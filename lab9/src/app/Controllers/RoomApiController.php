@@ -70,7 +70,7 @@ final class RoomApiController
 
         $input = json_input();
 
-        $fields = ['name', 'capacity', 'equipment'];
+        $fields = ['room_number', 'capacity', 'location', 'equipment'];
 
         $data = array_intersect_key(
             $existing,
@@ -130,19 +130,19 @@ final class RoomApiController
         return (int) $id;
     }
 
-    // Проверка данных переговорной комнаты.
+        // Проверка данных переговорной комнаты.
     private function validate(array $data): array
     {
         $errors = [];
 
-        $name = $data['name'] ?? null;
+        $number = $data['room_number'] ?? null;
 
         if (
-            !is_string($name) ||
-            !preg_match('/^.{3,}$/us', trim($name))
+            !is_string($number) ||
+            !preg_match('/^.{1,10}$/us', trim($number))
         ) {
-            $errors['name'] =
-                'Название должно содержать не менее 3 символов';
+            $errors['room_number'] =
+                'Укажите номер комнаты длиной до 10 символов';
         }
 
         $capacity = $data['capacity'] ?? null;
@@ -150,6 +150,16 @@ final class RoomApiController
         if (!is_int($capacity) || $capacity < 1) {
             $errors['capacity'] =
                 'Вместимость должна быть положительным целым числом';
+        }
+
+        $location = $data['location'] ?? null;
+
+        if (
+            !is_string($location) ||
+            !preg_match('/^.{1,100}$/us', trim($location))
+        ) {
+            $errors['location'] =
+                'Укажите расположение комнаты';
         }
 
         $equipment = $data['equipment'] ?? null;
@@ -160,6 +170,14 @@ final class RoomApiController
         ) {
             $errors['equipment'] =
                 'Укажите оборудование переговорной комнаты';
+        } else {
+            foreach (explode(',', $equipment) as $item) {
+                if (!preg_match('/^.{1,100}$/us', trim($item))) {
+                    $errors['equipment'] =
+                        'Некорректное название оборудования';
+                    break;
+                }
+            }
         }
 
         return $errors;
@@ -169,9 +187,10 @@ final class RoomApiController
     private function normalize(array $data): array
     {
         return [
-            'name' => trim($data['name']),
+            'room_number' => trim($data['room_number']),
             'capacity' => $data['capacity'],
-            'equipment' => trim($data['equipment'])
+            'location' => trim($data['location']),
+            'equipment' => trim($data['equipment']),
         ];
     }
 }

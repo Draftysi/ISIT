@@ -48,3 +48,8 @@ $router->post('/api/users', [UserApiController::class, 'store']);
 $router->put('/api/users/{id}', [UserApiController::class, 'update']);
 $router->patch('/api/users/{id}', [UserApiController::class, 'update']);
 $router->delete('/api/users/{id}', [UserApiController::class, 'destroy']);
+
+// Авторизация (лабораторная №9).
+$router->post('/api/login', [\App\Controllers\AuthController::class, 'login']);
+$router->get('/api/me', [\App\Controllers\AuthController::class, 'me']);
+$router->post('/api/logout', [\App\Controllers\AuthController::class, 'logout']);

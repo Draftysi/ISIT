@@ -20,7 +20,17 @@ final class BookingApiController
     // GET /api/bookings
     public function index(): void
     {
-        $bookings = $this->bookings->all();
+                $query = $_GET['q'] ?? '';
+
+        if (!is_string($query)) {
+            json_error('Некорректный поисковый запрос', 422);
+        }
+
+        $query = trim($query);
+
+        $bookings = $query !== ''
+            ? $this->bookings->search($query)
+            : $this->bookings->all();
 
         // Фильтрация по статусу.
         if (isset($_GET['status'])) {
@@ -89,6 +99,7 @@ final class BookingApiController
 
         $data['subject'] = trim($data['subject']);
 
+        $data['user_id'] = (int) AUTH_USER['id'];
         $booking = $this->bookings->add($data);
 
         header('Location: /api/bookings/' . $booking['id']);
@@ -106,6 +117,12 @@ final class BookingApiController
             json_error('Бронирование не найдено', 404);
         }
 
+        if (
+            AUTH_USER['role'] !== 'admin' &&
+            (int) $existing['user_id'] !== (int) AUTH_USER['id']
+        ) {
+            json_error('Нельзя изменять чужое бронирование', 403);
+        }
         $input = json_input();
         $data = $this->prepare($input, $existing);
 
@@ -122,10 +139,22 @@ final class BookingApiController
         json_response(['data' => $booking]);
     }
 
-    // DELETE /api/bookings/{id}
+       // DELETE /api/bookings/{id}
     public function destroy(string $id): void
     {
         $bookingId = $this->checkId($id);
+        $existing = $this->bookings->find($bookingId);
+
+        if ($existing === null) {
+            json_error('Бронирование не найдено', 404);
+        }
+
+        if (
+            AUTH_USER['role'] !== 'admin' &&
+            (int) $existing['user_id'] !== (int) AUTH_USER['id']
+        ) {
+            json_error('Нельзя удалять чужое бронирование', 403);
+        }
 
         if (!$this->bookings->delete($bookingId)) {
             json_error('Бронирование не найдено', 404);
